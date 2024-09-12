@@ -11,6 +11,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -41,6 +42,14 @@ func init() {
 	}
 
 	s3Client = s3.NewFromConfig(cfg)
+}
+func getEncryptionKey() []byte {
+	// Récupérer la clé depuis l'environnement
+	key := os.Getenv("ENCRYPTION_KEY")
+	if len(key) != 32 {
+		log.Fatalf("La clé de chiffrement doit avoir 32 octets pour AES-256")
+	}
+	return []byte(key)
 }
 
 func main() {
