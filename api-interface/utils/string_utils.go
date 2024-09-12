@@ -17,3 +17,4 @@ func IsPascalCase(s string) bool {
     }
     return true
 }
+

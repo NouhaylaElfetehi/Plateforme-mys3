@@ -5,16 +5,23 @@ import (
 )
 
 type Bucket struct {
-    Name         string          `json:"name"`
-    CreationDate string          `json:"creationDate"`
-    Owner        Owner           `json:"owner"`
-    URI          string          `json:"uri"`
-    Type         BucketType      `json:"type"`
-    StorageClass StorageClassType `json:"storageClass"`
-    Versioning   VersioningStatus `json:"versioning"`
-    ObjectCount  int64           `json:"objectCount"`
-    Size         int64           `json:"size"`
-    LastModified string          `json:"lastModified"`
+    Name         string          `xml:"name"`
+    CreationDate *string          `xml:"creationDate"`
+    Owner        Owner           `xml:"owner"`
+    URI          string          `xml:"uri"`
+    Type         BucketType      `xml:"type"`
+    StorageClass *StorageClassType `xml:"storageClass"`
+    Versioning   VersioningStatus `xml:"versioning"`
+    ObjectCount  *int64           `xml:"objectCount"`
+    Size         *int64           `xml:"size"`
+    LastModified *string          `xml:"lastModified"`
+}
+
+type CreateBucketRequestStruct struct {
+    Name         string          `xml:"name"`
+    Owner        Owner           `xml:"owner"`
+    Type         BucketType      `xml:"type"`
+    Versioning   VersioningStatus `xml:"versioning"`
 }
 
 func (b *Bucket) GetKey() string {
