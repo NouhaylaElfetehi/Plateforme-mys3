@@ -46,5 +46,7 @@ func Router(app *fiber.App) {
 	protected.Get("/v1/bucket/:bucketName/objects", bc.ListObjects)
 	// Suppression d'un objet dans un bucket
 	protected.Delete("/v1/bucket/:bucketName/object/:objectName", bc.DeleteObject)
+	// uploader un fichier
+	protected.Post("/v1/bucket/:bucketName/upload", bc.UploadFile)
 
 }
