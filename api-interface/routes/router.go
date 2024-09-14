@@ -4,8 +4,8 @@ import (
 	Controller "api-interface/controllers"
 	"api-interface/database"
 	"api-interface/handlers"
-	Middlewares "api-interface/middlewares/bucket_creation"
-
+	UploadMiddlewares "api-interface/middlewares/UploadFileValidationMiddleware"
+	BucketMiddlewares "api-interface/middlewares/bucket_creation"
 	"fmt"
 
 	"github.com/gofiber/fiber/v2"
@@ -41,12 +41,16 @@ func Router(app *fiber.App) {
 	protected.Get("/bucket/:bucketName/file/:fileName", database.DownloadFile)
 	protected.Delete("/bucket/:bucketName/file/:fileName", database.DeleteFile)
 
-	protected.Post("/v1/bucket", Middlewares.BucketValidationMiddleware(), bc.InsertBucket)
+	protected.Post("/v1/bucket", BucketMiddlewares.BucketValidationMiddleware(), bc.InsertBucket)
 	// Liste des objets dans un bucket
 	protected.Get("/v1/bucket/:bucketName/objects", bc.ListObjects)
 	// Suppression d'un objet dans un bucket
 	protected.Delete("/v1/bucket/:bucketName/object/:objectName", bc.DeleteObject)
 	// uploader un fichier
 	protected.Post("/v1/bucket/:bucketName/upload", bc.UploadFile)
+	protected.Post("/v1/bucket/:bucketName/upload", UploadMiddlewares.UploadFileValidationMiddleware(), bc.UploadFiles)
+
+	protected.Delete("/v1/bucket/:bucketName/file/:fileName", bc.DeleteFile)
+	protected.Get("/v1/bucket/:bucketName/files", bc.ListFiles)
 
 }
