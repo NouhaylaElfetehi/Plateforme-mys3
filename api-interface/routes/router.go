@@ -27,6 +27,8 @@ func Router(app *fiber.App) {
 
 	app.Post("/register", handlers.Register)
 	app.Post("/login", handlers.Login)
+	app.Get("/buckets/:bucketName/:filename", BucketObjectController.DownloadFile)
+
 
 	// Routes protégées
 	protected := app.Group("")
@@ -37,5 +39,4 @@ func Router(app *fiber.App) {
 	protected.Get("/bucket/:bucketName/file/:fileName", database.DownloadFile)
 	protected.Delete("/bucket/:bucketName/file/:fileName", database.DeleteFile)
 
-	protected.Get("/buckets/:bucketName/:filename", BucketObjectController.DownloadFile)
 }
