@@ -27,7 +27,8 @@ func Router(app *fiber.App) {
 
 	app.Post("/register", handlers.Register)
 	app.Post("/login", handlers.Login)
-	app.Get("/buckets/:bucketName/:filename", BucketObjectController.DownloadFile)
+
+	app.Get("/:bucketName/:filename", BucketObjectController.DownloadFile)
 
 
 	// Routes protégées

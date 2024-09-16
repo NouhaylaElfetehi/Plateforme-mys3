@@ -23,7 +23,7 @@ func (fc *BucketObjectController) DownloadFile(c *fiber.Ctx) error {
     fileName := c.Params("fileName")
 
     // Construire le chemin du fichier
-    filePath := filepath.Join("./buckets", bucketName, fileName)
+    filePath := filepath.Join("./data/buckets", bucketName, fileName)
     fmt.Println("Chemin du fichier :", filePath)
 
     // Vérifier si le fichier existe
