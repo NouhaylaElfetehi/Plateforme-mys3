@@ -205,7 +205,7 @@ Ce middleware permet d'encrypter et de decrypter les données.
 Exemple d'utilisation (fichier _test) :
 ```Go
 // Exemple de texte à chiffrer et déchiffrer
-	originalText := "This is some sensitive information"
+originalText := "This is some sensitive information"
 
 // Créer un ResponseRecorder pour capturer les erreurs
 recorder := newTestResponseWriter()

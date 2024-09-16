@@ -6,24 +6,24 @@ import (
 	"strings"
 
 	entity "api-interface/entities"
-	utils "api-interface/utils"
+	"api-interface/utils"
+	colors "api-interface/utils/colorPrint"
 )
 
-// Séquences d'échappement ANSI pour les couleurs
-const (
-    Reset  = "\033[0m"
-    Blue   = "\033[34m"
-    Green  = "\033[32m"
-    Yellow = "\033[33m"
-    Red    = "\033[31m"
-    Grey   = "\033[90m"
+var (
+    Blue = colors.Blue
+    Green = colors.Green
+    Yellow = colors.Yellow
+    Red = colors.Red
+    Grey = colors.Grey
+    Reset = colors.Reset
 )
 
 /** Tests d'application d'un TypeEntity avant l'intégration d'un Repository
-    * @param typeName string
-    * @param structType reflect.Type
-    * @return bool
-*/
+ * @param typeName string
+ * @param structType reflect.Type
+ * @return bool
+ */
 func AssureEntityCompliance(typeName string, structType reflect.Type) bool {
 
     fmt.Printf("\n%sTraitement de l'entité : %s%s\n", Blue, typeName, Reset)

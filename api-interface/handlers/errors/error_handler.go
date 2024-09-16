@@ -1,13 +1,10 @@
 package errors
 
 import (
-	"encoding/json" // Librairie encoding JSON : https://pkg.go.dev/encoding/json 
-	"net/http" // HTTP client provider : https://pkg.go.dev/net/http
+	"github.com/gofiber/fiber/v2"
 )
 
-// Structure pour une erreur personnalisée : 
-// Code : Satus HTTP de l'erreur
-// Message : Message d'erreur, par défault il est définit ci-dessous selon le status mais peuvent-être personnalisé
+// Structure pour une erreur personnalisée
 type Error struct {
 	Code    int    `json:"code"`
 	Message string `json:"message"`
@@ -22,26 +19,33 @@ func New(code int, message string) *Error {
 }
 
 // HandleError écrit la réponse d'erreur en format JSON dans le writer HTTP.
-func HandleError(w http.ResponseWriter, err *Error, customMessage ...string) {
+func HandleError(c *fiber.Ctx, err *Error, customMessage ...string) error {
 
 	// Remplacer le message par défaut s'il y a un message personnalisé
 	if len(customMessage) > 0 {
 		err.Message = customMessage[0]
 	}
 
-	// Ajout du status d'erreur aux header de la réponse
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(err.Code)
-
-	// Sérialise l'erreur en JSON et l'écrit dans la réponse
-	json.NewEncoder(w).Encode(err)
+	// Sérialiser l'erreur en JSON et la renvoyer comme réponse Fiber
+	return c.Status(err.Code).JSON(fiber.Map{
+		"error": err.Message,
+	})
 }
 
-// Exemples d'utilisation avec message par défault pour chaque status.
+// Exemples d'utilisation avec message par défaut pour chaque statut.
 var (
-	ErrBadRequest          = New(http.StatusBadRequest, "Bad Request")
-	ErrForbidden           = New(http.StatusForbidden, "Forbidden")
-	ErrNotFound            = New(http.StatusNotFound, "Not Found")
-	ErrInternalServerError = New(http.StatusInternalServerError, "Internal Server Error")
-	ErrRequestEntityTooLarge = New(http.StatusRequestEntityTooLarge, "Request entity too large")
+	// 400
+	ErrBadRequest          = New(fiber.StatusBadRequest, "Bad Request")
+	// 403
+	ErrForbidden           = New(fiber.StatusForbidden, "Forbidden")
+	// 404
+	ErrNotFound            = New(fiber.StatusNotFound, "Not Found")
+	// 409
+	ErrConflict            = New(fiber.StatusConflict, "Conflict")
+	// 413
+	ErrRequestEntityTooLarge = New(fiber.StatusRequestEntityTooLarge, "Request entity too large")
+	// 422
+	ErrUnprocessableEntity = New(fiber.StatusUnprocessableEntity, "Unprocessable Entity") 
+	// 500
+	ErrInternalServerError = New(fiber.StatusInternalServerError, "Internal Server Error")
 )

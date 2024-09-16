@@ -1,2 +1,3 @@
 .env
-./api-interface/my.db
+## données de l'API
+./api-interface/data/*

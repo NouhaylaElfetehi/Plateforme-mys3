@@ -1,5 +1,5 @@
 # Building the binary of the App
-FROM golang:1.21 AS build
+FROM golang:latest AS build
 
 # `boilerplate` should be replaced with your project name
 WORKDIR /go/src/api-interface
@@ -32,8 +32,20 @@ RUN apk -U upgrade \
     && apk add --no-cache dumb-init ca-certificates \
     && chmod +x /app/app
 
-# Exposes port 3000 because our program listens on that port
-EXPOSE 3000
+# Add packages
+RUN apk -U upgrade \
+    && apk add --no-cache dumb-init ca-certificates \
+    && chmod +x /app/app
+
+# Export environment variables from .env file
+RUN export $(grep -v '^#' app/app/.env | xargs)
+
+# Expose the port specified in the .env file
+ENV S3_PORT=${S3_PORT:-9000}
+EXPOSE ${S3_PORT}
+
+# Add the data volume
+VOLUME ["/app/data"]
 
 ENTRYPOINT ["/usr/bin/dumb-init", "--", "/app/app"]
 
