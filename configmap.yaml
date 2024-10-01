@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-interface-config
+data:
+  S3_PORT: "9000"
+  # Add other non-sensitive environment variables here

@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-interface-deployment
+  labels:
+    app: api-interface
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: api-interface
+  template:
+    metadata:
+      labels:
+        app: api-interface
+    spec:
+      containers:
+        - name: api-interface
+          image: your-dockerhub-username/api-interface:latest
+          ports:
+            - containerPort: 9000
+          envFrom:
+            - configMapRef:
+                name: api-interface-config
+          env:
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: api-interface-secret
+                  key: DB_PASSWORD
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: api-interface-secret
+                  key: API_KEY
+          volumeMounts:
+            - name: data-volume
+              mountPath: /app/data
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: data-pvc

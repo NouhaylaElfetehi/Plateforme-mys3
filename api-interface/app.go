@@ -32,14 +32,14 @@ func init() {
 	// Charger les variables d'environnement
 	err := godotenv.Load("../.env")
 	if err != nil {
-		log.Fatalf("Error loading .env file")
+		fmt.Println(colorPrint.RedP("Error loading .env file"))
 	}
 
 	envMap , envMapErr := godotenv.Read("../.env")
 	if envMapErr != nil {
-		log.Fatalf(colorPrint.RedP("Error loading .env file"))
+		fmt.Println(colorPrint.RedP("Error loading .env file"))
 	} else if envMap == nil {
-		log.Fatalf(colorPrint.RedP("Error loading .env file"))
+		fmt.Println(colorPrint.RedP("Error loading .env file"))
 	}
 
 
