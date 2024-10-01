@@ -1,5 +1,45 @@
 # Plateforme MYS3
 
+## Architecture proposée
+
+Oui, je comprends votre objectif. Vous souhaitez créer une architecture où un serveur API interface récupère des métadonnées de fichiers à partir d'un registre, puis utilise ces métadonnées pour récupérer les fichiers depuis un serveur de stockage distinct. Cette architecture ressemble à un système de type S3 d'Amazon, avec des fonctionnalités de réplication et de synchronisation entre les serveurs de fichiers.
+
+### Architecture Proposée
+
+1. **Serveur API Interface** :
+
+   - Récupère les métadonnées des fichiers depuis un registre.
+   - Utilise les métadonnées pour localiser et récupérer les fichiers depuis le serveur de stockage.
+   - Sert les fichiers au client avec le type MIME approprié.
+
+2. **Serveur de Stockage** :
+
+   - Stocke les fichiers.
+   - Réplique les fichiers sur deux autres serveurs pour la redondance.
+   - Synchronise les fichiers pour garantir la cohérence des noms de fichiers et des contenus.
+
+3. **Réplication et Synchronisation** :
+   - Les serveurs de stockage se synchronisent pour avoir les mêmes fichiers avec les mêmes noms.
+   - Un mécanisme de réplication assure que les fichiers sont copiés sur deux autres serveurs pour la redondance.
+
+### Étapes pour Implémenter cette Architecture
+
+1. **Développer le Serveur API Interface** :
+
+   - Créer une API REST pour récupérer les métadonnées des fichiers.
+   - Ajouter des endpoints pour récupérer les fichiers depuis le serveur de stockage.
+   - Utiliser un algorithme de recherche binaire pour localiser les fichiers.
+
+2. **Développer le Serveur de Stockage** :
+
+   - Créer une API REST pour stocker et récupérer les fichiers.
+   - Implémenter la réplication des fichiers sur deux autres serveurs.
+   - Ajouter un mécanisme de synchronisation pour garantir la cohérence des fichiers.
+
+3. **Configurer la Réplication et la Synchronisation** :
+   - Utiliser des outils comme `rsync` pour la synchronisation des fichiers.
+   - Configurer des tâches cron pour exécuter la synchronisation à intervalles réguliers.
+
 ## Initialiser le projet
 
 ### Prérequis
@@ -9,7 +49,7 @@
 - Assurez-vous d'avoir Docer destop d'ouvert
 - Au besoin de lancer le container api-interface tout seul, assurer vous d'avoir installer Make
 
-  ```
+  ```shell
   choco install make
   ```
 
