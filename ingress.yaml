@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api-interface-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  rules:
+    - host: johan.cdpi.atelier.ovh
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: api-interface-service
+                port:
+                  number: 9000
+  tls:
+    - hosts:
+        - johan.cdpi.atelier.ovh
+      secretName: johan.cdpi.atelier.ovh

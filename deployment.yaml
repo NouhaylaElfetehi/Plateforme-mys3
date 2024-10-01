@@ -5,7 +5,7 @@ metadata:
   labels:
     app: api-interface
 spec:
-  replicas: 3
+  replicas: 1
   selector:
     matchLabels:
       app: api-interface
@@ -16,9 +16,17 @@ spec:
     spec:
       containers:
         - name: api-interface
-          image: your-dockerhub-username/api-interface:latest
+          image: johanbouguermouh/mys3:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 9000
+          resources: # Correction ici
+            requests:
+              memory: "512Mi"
+              cpu: "0.2"
+            limits:
+              memory: "1Gi"
+              cpu: "0.5"
           envFrom:
             - configMapRef:
                 name: api-interface-config

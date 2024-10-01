@@ -1,5 +1,3 @@
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
-
 name: CI/CD Pipeline
 
 on:
@@ -11,8 +9,6 @@ on:
       - "*"
 
 jobs:
-  # Installe les dépendances Go nécessaires pour le projet.
-  # Utilise actions/checkout@v4 pour récupérer le code source.
   install-dependencies:
     runs-on: ubuntu-latest
 
@@ -24,9 +20,7 @@ jobs:
         run: |
           cd api-interface
           go mod download
-  # Dépend du job install-dependencies.
-  # Construit le projet Go en utilisant go build.
-  # Utilise actions/setup-go@v5 pour configurer l'environnement Go.
+
   build:
     runs-on: ubuntu-latest
     needs: install-dependencies
@@ -44,9 +38,7 @@ jobs:
         run: |
           cd api-interface
           go build -o app
-  # Dépend du job install-dependencies.
-  # Exécute les tests Go en utilisant go test.
-  # Utilise actions/setup-go@v5 pour configurer l'environnement Go.
+
   test:
     runs-on: ubuntu-latest
     needs: install-dependencies
@@ -65,10 +57,8 @@ jobs:
           cd api-interface
           go test ./database/...
           go test ./middlewares/bucket_name_validation
-  # Dépend des jobs build et test.
-  # Construit et pousse les images Docker pour le développement et la production.
-  # Utilise des conditions pour différencier les images de développement et de production.
-  docker:
+
+  docker-hub:
     runs-on: ubuntu-latest
     needs: [build, test]
 
@@ -79,33 +69,74 @@ jobs:
       - name: Get current timestamp
         run: echo "TIMESTAMP=$(date +%Y-%m-%d_%H-%M-%S)" >> $GITHUB_ENV
 
+      - name: Debug Docker Hub credentials
+        run: |
+          echo "DOCKERHUB_USER: ${{ secrets.DOCKERHUB_USER }}"
+          echo "DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_PASSWORD }}" | sed 's/./*/g'
+
       - name: Build Docker image for development (branch main)
-        # Utilise une condition pour exécuter les étapes uniquement si la branche est main.
         if: github.ref == 'refs/heads/main'
         run: |
           cd api-interface
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/api-interface:dev-${{ env.TIMESTAMP }} .
+          docker build -t ${{ secrets.DOCKERHUB_USER }}/mys3:dev-${{ env.TIMESTAMP }} .
 
       - name: Build Docker image for production (tag)
-        # Utilise une condition pour exécuter les étapes uniquement si la référence commence par refs/tags/.
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           cd api-interface
           TAG_NAME=${GITHUB_REF#refs/tags/}
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/api-interface:${TAG_NAME}-${{ env.TIMESTAMP }} .
+          docker build -t ${{ secrets.DOCKERHUB_USER }}/mys3:${TAG_NAME}-${{ env.TIMESTAMP }} .
 
       - name: Log in to Docker Hub
-        run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+        run: echo "${{ secrets.DOCKERHUB_PASSWORD }}" | docker login -u "${{ secrets.DOCKERHUB_USER }}" --password-stdin
 
       - name: Push Docker image for development
         if: github.ref == 'refs/heads/main'
         run: |
-          docker tag ${{ secrets.DOCKER_USERNAME }}/api-interface:dev-${{ env.TIMESTAMP }} ${{ secrets.DOCKER_USERNAME }}/api-interface:latest
-          docker push ${{ secrets.DOCKER_USERNAME }}/api-interface:dev-${{ env.TIMESTAMP }}
-          docker push ${{ secrets.DOCKER_USERNAME }}/api-interface:latest
+          docker tag ${{ secrets.DOCKERHUB_USER }}/mys3:dev-${{ env.TIMESTAMP }} ${{ secrets.DOCKERHUB_USER }}/mys3:latest
+          docker push ${{ secrets.DOCKERHUB_USER }}/mys3:dev-${{ env.TIMESTAMP }}
+          docker push ${{ secrets.DOCKERHUB_USER }}/mys3:latest
 
       - name: Push Docker image for production
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           TAG_NAME=${GITHUB_REF#refs/tags/}
-          docker push ${{ secrets.DOCKER_USERNAME }}/api-interface:${TAG_NAME}-${{ env.TIMESTAMP }}
+          docker push ${{ secrets.DOCKERHUB_USER }}/mys3:${TAG_NAME}-${{ env.TIMESTAMP }}
+
+  kubernetes:
+    runs-on: ubuntu-latest
+    needs: docker-hub
+    if: success()
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        run: |
+          mkdir -p $HOME/.kube
+          echo "${{ secrets.KUBE_CONFIG }}" > $HOME/.kube/config
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f deployment.yaml
+          kubectl apply -f service.yaml
+          kubectl apply -f ingress.yaml
+          kubectl apply -f pvc.yaml
+
+      - name: Extract Kubernetes deployment and service info
+        run: |
+          DEPLOYMENT_NAME=api-interface-deployment
+          SERVICE_NAME=api-interface-service
+
+          REPLICAS=$(kubectl get deployment $DEPLOYMENT_NAME -o jsonpath='{.status.replicas}')
+          READY_REPLICAS=$(kubectl get deployment $DEPLOYMENT_NAME -o jsonpath='{.status.readyReplicas}')
+          SERVICE_TYPE=$(kubectl get svc $SERVICE_NAME -o jsonpath='{.spec.type}')
+          EXTERNAL_IP=$(kubectl get svc $SERVICE_NAME -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          PORT=$(kubectl get svc $SERVICE_NAME -o jsonpath='{.spec.ports[0].port}')
+
+          echo "REPLICAS=$REPLICAS" >> $GITHUB_ENV
+          echo "READY_REPLICAS=$READY_REPLICAS" >> $GITHUB_ENV
+          echo "SERVICE_TYPE=$SERVICE_TYPE" >> $GITHUB_ENV
+          echo "EXTERNAL_IP=$EXTERNAL_IP" >> $GITHUB_ENV
+          echo "PORT=$PORT" >> $GITHUB_ENV
